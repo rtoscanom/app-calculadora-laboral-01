@@ -1,30 +1,36 @@
 export const Tokens = {
   Colors: {
-    primary: 'primary', // Reference to the Vuetify default (or overridden) primary
-    success: 'success', // Reference to the Vuetify success color
-    greyDark: 'grey-darken-1',
+    primary: 'primary',
+    secondary: 'secondary',
+    success: 'success',
+    greyDark: 'grey-darken-2',
     white: 'white',
-    // We avoid magic colors directly in the UI. If a specific hex is needed, define it here.
-    appBackgroundGradient: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)',
+    surface: 'surface',
+    background: 'background',
+    textHighlight: '#2d4a22', // Used explicitly in styles if a Vuetify class isn't enough, per cursorrules (no raw magic numbers in .vue files).
   },
   Spacing: {
-    paddingTopCard: 'pt-6', // Vuetify pt-6 spacing token
-    marginResultsText: 'mt-2', // Vuetify mt-2 spacing token
-    marginAlert: 'mt-4 mb-2', // Vuetify spacing tokens
-    paddingActions: 'px-0 pt-4 pb-0',
-    flexGrowSmallMarginRight: 'mr-2',
-    flexGrowSmallMarginLeft: 'ml-2',
+    paddingTopCard: 'pt-8',
+    marginResultsText: 'mt-3 mb-1',
+    marginAlert: 'mt-6 mb-4',
+    paddingActions: 'px-6 pt-6 pb-6',
+    flexGrowSmallMarginRight: 'mr-3',
+    flexGrowSmallMarginLeft: 'ml-3',
+    pagePadding: 'pa-4 md-pa-8',
   },
   Typography: {
-    titleSize: 'text-h5',
-    titleWeight: 'font-weight-bold',
+    titleSize: 'text-h4',
+    titleWeight: 'font-weight-black',
+    subtitleSize: 'text-subtitle-1',
     bodyText: 'text-body-1',
   },
   Elevation: {
-    card: 12,
-    toolbar: 4,
+    card: 0, // In the mockup, cards are flat with soft colors, no heavy dropshadows
+    toolbar: 0,
   },
   Shape: {
     cardRounding: 'rounded-xl',
+    buttonRounding: 'rounded-pill', // Mockups use very rounded pill buttons
+    inputRounding: 'rounded-xl',
   }
 } as const

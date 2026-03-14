@@ -31,13 +31,18 @@ const onResetForm = () => {
 
 <template>
   <v-form ref="formRef" v-model="valid" @submit.prevent="onCalculate">
+    <!-- Note: We use color="primary" and basecolor="white" or text/bg colors for modern solo fields -->
     <v-text-field
       v-model="name"
       label="Nombre completo"
       :rules="[rules.required]"
-      variant="outlined"
+      variant="solo-filled"
+      flat
       density="comfortable"
       :color="Tokens.Colors.primary"
+      bg-color="white"
+      :class="Tokens.Shape.inputRounding"
+      class="mb-3 custom-input"
       prepend-inner-icon="mdi-account"
     ></v-text-field>
 
@@ -45,9 +50,13 @@ const onResetForm = () => {
       v-model="idCard"
       label="Número de cédula"
       :rules="[rules.required, rules.numeric]"
-      variant="outlined"
+      variant="solo-filled"
+      flat
       density="comfortable"
       :color="Tokens.Colors.primary"
+      bg-color="white"
+      :class="Tokens.Shape.inputRounding"
+      class="mb-3 custom-input"
       prepend-inner-icon="mdi-card-account-details"
     ></v-text-field>
 
@@ -56,9 +65,13 @@ const onResetForm = () => {
       label="Año de nacimiento"
       type="number"
       :rules="[rules.birthYearValid]"
-      variant="outlined"
+      variant="solo-filled"
+      flat
       density="comfortable"
       :color="Tokens.Colors.primary"
+      bg-color="white"
+      :class="Tokens.Shape.inputRounding"
+      class="mb-3 custom-input"
       prepend-inner-icon="mdi-calendar-star"
     ></v-text-field>
 
@@ -67,9 +80,13 @@ const onResetForm = () => {
       label="Año de inicio laboral"
       type="number"
       :rules="[rules.workStartValid]"
-      variant="outlined"
+      variant="solo-filled"
+      flat
       density="comfortable"
       :color="Tokens.Colors.primary"
+      bg-color="white"
+      :class="Tokens.Shape.inputRounding"
+      class="mb-3 custom-input"
       prepend-inner-icon="mdi-briefcase"
     ></v-text-field>
 
@@ -80,31 +97,39 @@ const onResetForm = () => {
       :age-started-working="ageStartedWorking"
     />
 
-    <v-card-actions :class="Tokens.Spacing.paddingActions">
-      <v-btn
-        type="button"
-        variant="tonal"
-        :color="Tokens.Colors.greyDark"
-        size="large"
-        class="text-none flex-grow-1"
-        :class="Tokens.Spacing.flexGrowSmallMarginRight"
-        @click="onResetForm"
-        prepend-icon="mdi-refresh"
-      >
-        Limpiar
-      </v-btn>
+    <v-card-actions :class="Tokens.Spacing.paddingActions" class="flex-column ga-3">
       <v-btn
         type="submit"
         :color="Tokens.Colors.primary"
         variant="flat"
-        size="large"
-        class="text-none flex-grow-1"
-        :class="Tokens.Spacing.flexGrowSmallMarginLeft"
+        size="x-large"
+        class="text-none w-100"
+        :class="Tokens.Shape.buttonRounding"
         :disabled="!valid"
-        prepend-icon="mdi-calculator"
       >
-        Calcular
+        Order now <!-- Keep "Order now" style from mockup or use "Calcular" but heavily stylized -->
+        <span class="ml-2">Calcular</span>
+      </v-btn>
+      <v-btn
+        type="button"
+        variant="text"
+        :color="Tokens.Colors.greyDark"
+        size="large"
+        class="text-none w-100"
+        :class="Tokens.Shape.buttonRounding"
+        @click="onResetForm"
+        prepend-icon="mdi-refresh"
+      >
+        Limpiar formulario
       </v-btn>
     </v-card-actions>
   </v-form>
 </template>
+
+<style scoped>
+/* Vuetify forces some internal border-radius on elements we want to fully round. We override via pure CSS if necessary based on Atomic Vibe. */
+:deep(.v-field) {
+  border-radius: 20px !important; 
+  box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.03) !important;
+}
+</style>

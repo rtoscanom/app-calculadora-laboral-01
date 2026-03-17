@@ -8,6 +8,7 @@ export default defineNuxtConfig({
     transpile: ['vuetify'],
   },
   modules: [
+    '@nuxtjs/supabase',
     (_options, nuxt) => {
       nuxt.hooks.hook('vite:extendConfig', (config) => {
         // @ts-expect-error
@@ -15,6 +16,13 @@ export default defineNuxtConfig({
       })
     },
   ],
+  supabase: {
+    redirectOptions: {
+      login: '/login',
+      callback: '/confirm',
+      exclude: ['/register'],
+    }
+  },
   vite: {
     vue: {
       template: {

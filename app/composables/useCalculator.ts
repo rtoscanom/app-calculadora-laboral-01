@@ -2,6 +2,8 @@ import { ref, computed } from 'vue'
 
 export function useCalculator() {
   const currentYear = new Date().getFullYear()
+  const supabase = useSupabaseClient()
+  const user = useSupabaseUser()
 
   // Form Data
   const valid = ref(false)
@@ -47,11 +49,31 @@ export function useCalculator() {
   }
 
   // Actuators
-  const calculate = async (formRef: any) => {
-    if (!formRef) return
-    const { valid: isValid } = await formRef.validate()
-    if (isValid) {
-      showResults.value = true
+  const calculate = async (formInstance: any) => {
+    if (formInstance) {
+      const { valid: isValid } = await formInstance.validate()
+      if (isValid) {
+        showResults.value = true
+
+        // Insert into Supabase
+        const { data: { user: currentUser } } = await supabase.auth.getUser()
+        
+        if (currentUser && currentUser.id) {
+          try {
+            await supabase.from('calculations').insert({
+              user_id: currentUser.id,
+              nombre: name.value,
+              cedula: idCard.value,
+              anio_nacimiento: birthYear.value,
+              anio_inicio_laboral: workStartYear.value,
+              edad_calculada: currentAge.value, 
+              edad_inicio_laboral: ageStartedWorking.value 
+            } as any)
+          } catch (e) {
+            console.error('Failed to save calculation:', e)
+          }
+        }
+      }
     }
   }
 

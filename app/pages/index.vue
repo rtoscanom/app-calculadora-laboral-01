@@ -22,23 +22,23 @@ const { logout } = useAuth()
       Ingresa tus datos para empezar
     </p>
 
-    <div class="mt-4 d-flex justify-center ga-2 flex-wrap">
+    <div class="mt-4 d-flex justify-center ga-4 flex-wrap">
       <v-btn
         to="/history"
         variant="tonal"
-        color="surface"
+        :color="Tokens.Colors.primary"
         :class="Tokens.Shape.buttonRounding"
         prepend-icon="mdi-history"
-        class="text-none"
+        class="text-none font-weight-bold px-6"
       >
         Ver Historial
       </v-btn>
       <v-btn
         variant="outlined"
-        color="surface"
+        :color="Tokens.Colors.primary"
         :class="Tokens.Shape.buttonRounding"
         prepend-icon="mdi-logout"
-        class="text-none"
+        class="text-none font-weight-bold px-6"
         @click="logout"
       >
         Cerrar Sesión

@@ -103,12 +103,11 @@ const onResetForm = () => {
         :color="Tokens.Colors.primary"
         variant="flat"
         size="x-large"
-        class="text-none w-100"
+        class="text-none w-100 font-weight-bold text-h6"
         :class="Tokens.Shape.buttonRounding"
         :disabled="!valid"
       >
-        Order now <!-- Keep "Order now" style from mockup or use "Calcular" but heavily stylized -->
-        <span class="ml-2">Calcular</span>
+        Calcular
       </v-btn>
       <v-btn
         type="button"

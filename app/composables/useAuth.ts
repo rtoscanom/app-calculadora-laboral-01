@@ -5,6 +5,20 @@ export const useAuth = () => {
   const errorMsg = ref('')
   const loading = ref(false)
 
+  const translateError = (msg: string) => {
+    switch (msg) {
+      case 'Invalid login credentials':
+        return 'Correo electrónico o contraseña incorrectos'
+      case 'User already registered':
+      case 'User already exists':
+        return 'El usuario ya está registrado'
+      case 'Password should be at least 6 characters.':
+        return 'La contraseña debe tener al menos 6 caracteres'
+      default:
+        return msg
+    }
+  }
+
   const login = async (email: string, password: string) => {
     errorMsg.value = ''
     loading.value = true
@@ -16,7 +30,7 @@ export const useAuth = () => {
       if (error) throw error
       navigateTo('/')
     } catch (error: any) {
-      errorMsg.value = error.message || 'Error al iniciar sesión'
+      errorMsg.value = translateError(error.message) || 'Error al iniciar sesión'
     } finally {
       loading.value = false
     }
@@ -35,7 +49,7 @@ export const useAuth = () => {
       // assuming auto-confirm or successful login redirect for now:
       navigateTo('/')
     } catch (error: any) {
-      errorMsg.value = error.message || 'Error al registrarse'
+      errorMsg.value = translateError(error.message) || 'Error al registrarse'
     } finally {
       loading.value = false
     }

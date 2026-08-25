@@ -4,6 +4,7 @@ import { Tokens } from '~/utils/themeTokens'
 defineProps<{
   errorMsg?: string
   loading?: boolean
+  isConfigured?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -29,6 +30,17 @@ const emit = defineEmits<{
     <p :class="Tokens.Typography.bodyText" class="text-grey-darken-1 mb-6">
       Accede de forma rápida y segura con tu cuenta de <strong>Google</strong> para guardar y consultar tus cálculos laborales.
     </p>
+
+    <!-- Warning when Firebase keys are not in .env -->
+    <v-alert
+      v-if="isConfigured === false"
+      type="warning"
+      variant="tonal"
+      class="mb-6 text-left"
+      :class="Tokens.Shape.cardRounding"
+    >
+      <strong>Configuración requerida:</strong> Agrega tus credenciales de Firebase en el archivo <code>.env</code> para habilitar el inicio de sesión con Google.
+    </v-alert>
 
     <!-- Error Alert -->
     <v-alert

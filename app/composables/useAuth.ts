@@ -1,4 +1,4 @@
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import {
   GoogleAuthProvider,
   signInWithPopup,
@@ -14,8 +14,14 @@ export const useAuth = () => {
   const errorMsg = ref('')
   const loading = ref(false)
 
-  const translateError = (code: string, message?: string) => {
+  const isConfigured = computed(() => {
+    return !!nuxtApp.$isFirebaseConfigured
+  })
+
+  const translateError = (code?: string, message?: string) => {
     switch (code) {
+      case 'auth/invalid-api-key':
+        return 'La clave API de Firebase es inválida o está vacía. Por favor, revisa tu archivo .env.'
       case 'auth/popup-closed-by-user':
         return 'Se cerró la ventana de inicio de sesión de Google antes de completar.'
       case 'auth/cancelled-popup-request':
@@ -23,7 +29,7 @@ export const useAuth = () => {
       case 'auth/popup-blocked':
         return 'El navegador bloqueó la ventana emergente de Google. Por favor, habilita las ventanas emergentes.'
       case 'auth/unauthorized-domain':
-        return 'Dominio no autorizado en la configuración de Firebase.'
+        return 'Dominio no autorizado en la configuración de Firebase Console.'
       case 'auth/network-request-failed':
         return 'Error de red al conectar con los servidores de Google.'
       default:
@@ -46,6 +52,8 @@ export const useAuth = () => {
           user.value = currentUser
           isAuthReady.value = true
         })
+      } else if (!auth) {
+        isAuthReady.value = true
       }
     }
   }
@@ -55,9 +63,16 @@ export const useAuth = () => {
     loading.value = true
 
     try {
+      if (!nuxtApp.$isFirebaseConfigured) {
+        throw {
+          code: 'auth/invalid-api-key',
+          message: 'Configura las credenciales de Firebase en el archivo .env para iniciar sesión con Google.',
+        }
+      }
+
       const auth = getAuthInstance()
       if (!auth) {
-        throw new Error('El servicio de autenticación no está disponible.')
+        throw new Error('El servicio de autenticación no está inicializado.')
       }
 
       const provider = new GoogleAuthProvider()
@@ -93,6 +108,7 @@ export const useAuth = () => {
   return {
     user,
     isAuthReady,
+    isConfigured,
     loading,
     errorMsg,
     initAuth,

@@ -1,6 +1,6 @@
-import { initializeApp, getApps, getApp } from 'firebase/app'
-import { getAuth } from 'firebase/auth'
-import { getFirestore } from 'firebase/firestore'
+import { initializeApp, getApps, getApp, type FirebaseApp } from 'firebase/app'
+import { getAuth, type Auth } from 'firebase/auth'
+import { getFirestore, type Firestore } from 'firebase/firestore'
 
 export default defineNuxtPlugin(() => {
   const config = useRuntimeConfig()
@@ -14,15 +14,28 @@ export default defineNuxtPlugin(() => {
     appId: config.public.firebaseAppId,
   }
 
-  const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig)
-  const auth = getAuth(app)
-  const db = getFirestore(app)
+  let app: FirebaseApp | null = null
+  let auth: Auth | null = null
+  let db: Firestore | null = null
+
+  const isConfigured = !!(firebaseConfig.apiKey && firebaseConfig.apiKey.trim() !== '')
+
+  if (isConfigured) {
+    try {
+      app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig)
+      auth = getAuth(app)
+      db = getFirestore(app)
+    } catch (err) {
+      console.warn('Firebase initialization error:', err)
+    }
+  }
 
   return {
     provide: {
       firebaseApp: app,
       firebaseAuth: auth,
       firestoreDb: db,
+      isFirebaseConfigured: isConfigured,
     },
   }
 })

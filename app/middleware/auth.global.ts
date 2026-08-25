@@ -16,6 +16,8 @@ export default defineNuxtRouteMiddleware(async (to) => {
         resolve()
       })
     })
+  } else if (!nuxtApp.$firebaseAuth) {
+    isAuthReady.value = true
   }
 
   const isPublicRoute = to.path === '/login'

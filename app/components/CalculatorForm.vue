@@ -11,6 +11,7 @@ const {
   birthYear,
   workStartYear,
   showResults,
+  saving,
   currentAge,
   ageStartedWorking,
   rules,
@@ -106,6 +107,7 @@ const onResetForm = () => {
         class="text-none w-100 font-weight-bold text-h6"
         :class="Tokens.Shape.buttonRounding"
         :disabled="!valid"
+        :loading="saving"
       >
         Calcular
       </v-btn>

@@ -1,34 +1,57 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import { collection, query, where, getDocs } from 'firebase/firestore'
 import { Tokens } from '~/utils/themeTokens'
+import { useAuth } from '~/composables/useAuth'
 
-const supabase = useSupabaseClient()
-const user = useSupabaseUser()
+const nuxtApp = useNuxtApp()
+const { user } = useAuth()
 const loading = ref(true)
 const items = ref<any[]>([])
 
 const headers = [
-  { title: 'Fecha', key: 'fecha_registro' },
+  { title: 'Fecha', key: 'fechaFormateada' },
   { title: 'Nombre', key: 'nombre' },
   { title: 'Cédula', key: 'cedula' },
-  { title: 'Año Nac.', key: 'anio_nacimiento' },
-  { title: 'Año Inicio Lab.', key: 'anio_inicio_laboral' },
-  { title: 'Edad Actual', key: 'edad_calculada' },
-  { title: 'Edad de Inicio', key: 'edad_inicio_laboral' },
+  { title: 'Año Nac.', key: 'anioNacimiento' },
+  { title: 'Año Inicio Lab.', key: 'anioInicioLaboral' },
+  { title: 'Edad Actual', key: 'edadCalculada' },
+  { title: 'Edad de Inicio', key: 'edadInicioLaboral' },
 ]
 
 onMounted(async () => {
-  if (user.value) {
-    const { data, error } = await supabase
-      .from('calculations')
-      .select('*')
-      .order('fecha_registro', { ascending: false })
-      
-    if (!error && data) {
-      items.value = data.map(i => ({
-        ...i,
-        fecha_registro: new Date(i.fecha_registro).toLocaleString()
-      }))
+  if (import.meta.client && nuxtApp.$firestoreDb && user.value) {
+    try {
+      const db = nuxtApp.$firestoreDb
+      const q = query(
+        collection(db, 'calculations'),
+        where('userId', '==', user.value.uid)
+      )
+
+      const querySnapshot = await getDocs(q)
+      const records: any[] = []
+
+      querySnapshot.forEach((doc) => {
+        const data = doc.data()
+        records.push({
+          id: doc.id,
+          ...data,
+          fechaFormateada: data.fechaRegistro
+            ? new Date(data.fechaRegistro).toLocaleString('es-CO')
+            : '-',
+        })
+      })
+
+      // Ordenar por fecha descendente en cliente
+      records.sort((a, b) => {
+        const dateA = new Date(a.fechaRegistro || 0).getTime()
+        const dateB = new Date(b.fechaRegistro || 0).getTime()
+        return dateB - dateA
+      })
+
+      items.value = records
+    } catch (e) {
+      console.error('Error fetching calculations from Firestore:', e)
     }
   }
   loading.value = false
@@ -66,8 +89,9 @@ onMounted(async () => {
       class="bg-transparent"
     >
       <template #no-data>
-        <div class="pa-4 text-center text-grey-darken-1">
-          No tienes cálculos guardados aún.
+        <div class="pa-6 text-center text-grey-darken-1">
+          <v-icon size="large" class="mb-2" color="grey">mdi-calculator-variant-outline</v-icon>
+          <p>No tienes cálculos guardados aún en tu cuenta de Google.</p>
         </div>
       </template>
     </v-data-table>

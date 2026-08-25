@@ -1,9 +1,11 @@
 import { ref, computed } from 'vue'
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore'
+import { useAuth } from './useAuth'
 
 export function useCalculator() {
   const currentYear = new Date().getFullYear()
-  const supabase = useSupabaseClient()
-  const user = useSupabaseUser()
+  const nuxtApp = useNuxtApp()
+  const { user } = useAuth()
 
   // Form Data
   const valid = ref(false)
@@ -14,6 +16,7 @@ export function useCalculator() {
 
   // Results state
   const showResults = ref(false)
+  const saving = ref(false)
 
   // Calculated results (Ciega a la UI - Solo números inmutables basados en Reactividad)
   const currentAge = computed(() => {
@@ -37,15 +40,17 @@ export function useCalculator() {
     birthYearValid: (v: number) => {
       if (!v) return 'Obligatorio'
       if (v > currentYear) return `El año debe ser menor o igual a ${currentYear}`
+      if (v < 1900) return 'Ingrese un año válido mayor a 1900'
       return true
     },
     workStartValid: (v: number) => {
       if (!v) return 'Obligatorio'
+      if (v > currentYear) return `El año debe ser menor o igual a ${currentYear}`
       if (birthYear.value && v < birthYear.value) {
         return `El año debe ser mayor o igual al año de nacimiento (${birthYear.value})`
       }
       return true
-    }
+    },
   }
 
   // Actuators
@@ -55,22 +60,27 @@ export function useCalculator() {
       if (isValid) {
         showResults.value = true
 
-        // Insert into Supabase
-        const { data: { user: currentUser } } = await supabase.auth.getUser()
-        
-        if (currentUser && currentUser.id) {
+        // Insert into Cloud Firestore (Google Cloud)
+        if (import.meta.client && nuxtApp.$firestoreDb && user.value) {
+          saving.value = true
           try {
-            await supabase.from('calculations').insert({
-              user_id: currentUser.id,
+            const db = nuxtApp.$firestoreDb
+            await addDoc(collection(db, 'calculations'), {
+              userId: user.value.uid,
+              userEmail: user.value.email || '',
               nombre: name.value,
               cedula: idCard.value,
-              anio_nacimiento: birthYear.value,
-              anio_inicio_laboral: workStartYear.value,
-              edad_calculada: currentAge.value, 
-              edad_inicio_laboral: ageStartedWorking.value 
-            } as any)
+              anioNacimiento: birthYear.value,
+              anioInicioLaboral: workStartYear.value,
+              edadCalculada: currentAge.value,
+              edadInicioLaboral: ageStartedWorking.value,
+              fechaRegistro: new Date().toISOString(),
+              createdAt: serverTimestamp(),
+            })
           } catch (e) {
-            console.error('Failed to save calculation:', e)
+            console.error('Failed to save calculation to Firestore:', e)
+          } finally {
+            saving.value = false
           }
         }
       }
@@ -81,6 +91,10 @@ export function useCalculator() {
     if (formRef) {
       formRef.reset()
     }
+    name.value = ''
+    idCard.value = ''
+    birthYear.value = null
+    workStartYear.value = null
     showResults.value = false
   }
 
@@ -92,11 +106,12 @@ export function useCalculator() {
     birthYear,
     workStartYear,
     showResults,
-    
+    saving,
+
     // Computed Data
     currentAge,
     ageStartedWorking,
-    
+
     // Tools
     rules,
     calculate,

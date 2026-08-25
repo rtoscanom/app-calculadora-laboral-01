@@ -1,55 +1,74 @@
 import { ref } from 'vue'
+import {
+  GoogleAuthProvider,
+  signInWithPopup,
+  signOut,
+  onAuthStateChanged,
+  type User,
+} from 'firebase/auth'
 
 export const useAuth = () => {
-  const supabase = useSupabaseClient()
+  const nuxtApp = useNuxtApp()
+  const user = useState<User | null>('auth_user', () => null)
+  const isAuthReady = useState<boolean>('auth_ready', () => false)
   const errorMsg = ref('')
   const loading = ref(false)
 
-  const translateError = (msg: string) => {
-    switch (msg) {
-      case 'Invalid login credentials':
-        return 'Correo electrónico o contraseña incorrectos'
-      case 'User already registered':
-      case 'User already exists':
-        return 'El usuario ya está registrado'
-      case 'Password should be at least 6 characters.':
-        return 'La contraseña debe tener al menos 6 caracteres'
+  const translateError = (code: string, message?: string) => {
+    switch (code) {
+      case 'auth/popup-closed-by-user':
+        return 'Se cerró la ventana de inicio de sesión de Google antes de completar.'
+      case 'auth/cancelled-popup-request':
+        return 'Solicitud de autenticación cancelada.'
+      case 'auth/popup-blocked':
+        return 'El navegador bloqueó la ventana emergente de Google. Por favor, habilita las ventanas emergentes.'
+      case 'auth/unauthorized-domain':
+        return 'Dominio no autorizado en la configuración de Firebase.'
+      case 'auth/network-request-failed':
+        return 'Error de red al conectar con los servidores de Google.'
       default:
-        return msg
+        return message || 'Ocurrió un error al autenticarse con Google.'
     }
   }
 
-  const login = async (email: string, password: string) => {
-    errorMsg.value = ''
-    loading.value = true
-    try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      })
-      if (error) throw error
-      navigateTo('/')
-    } catch (error: any) {
-      errorMsg.value = translateError(error.message) || 'Error al iniciar sesión'
-    } finally {
-      loading.value = false
+  const getAuthInstance = () => {
+    if (import.meta.client && nuxtApp.$firebaseAuth) {
+      return nuxtApp.$firebaseAuth
+    }
+    return null
+  }
+
+  const initAuth = () => {
+    if (import.meta.client) {
+      const auth = getAuthInstance()
+      if (auth && !isAuthReady.value) {
+        onAuthStateChanged(auth, (currentUser) => {
+          user.value = currentUser
+          isAuthReady.value = true
+        })
+      }
     }
   }
 
-  const register = async (email: string, password: string) => {
+  const loginWithGoogle = async () => {
     errorMsg.value = ''
     loading.value = true
+
     try {
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-      })
-      if (error) throw error
-      // In Nuxt Supabase, email confirmation is often required depending on settings,
-      // assuming auto-confirm or successful login redirect for now:
+      const auth = getAuthInstance()
+      if (!auth) {
+        throw new Error('El servicio de autenticación no está disponible.')
+      }
+
+      const provider = new GoogleAuthProvider()
+      provider.setCustomParameters({ prompt: 'select_account' })
+
+      const result = await signInWithPopup(auth, provider)
+      user.value = result.user
       navigateTo('/')
     } catch (error: any) {
-      errorMsg.value = translateError(error.message) || 'Error al registrarse'
+      console.error('Google Auth Error:', error)
+      errorMsg.value = translateError(error.code, error.message)
     } finally {
       loading.value = false
     }
@@ -58,21 +77,26 @@ export const useAuth = () => {
   const logout = async () => {
     loading.value = true
     try {
-      const { error } = await supabase.auth.signOut()
-      if (error) throw error
+      const auth = getAuthInstance()
+      if (auth) {
+        await signOut(auth)
+      }
+      user.value = null
       navigateTo('/login')
     } catch (error: any) {
-      console.error('Error logging out:', error.message)
+      console.error('Logout error:', error)
     } finally {
       loading.value = false
     }
   }
 
   return {
-    login,
-    register,
-    logout,
+    user,
+    isAuthReady,
+    loading,
     errorMsg,
-    loading
+    initAuth,
+    loginWithGoogle,
+    logout,
   }
 }

@@ -1,5 +1,14 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import { Tokens } from '~/utils/themeTokens'
+
+const route = useRoute()
+const colConfig = computed(() => {
+  if (route.path === '/history') {
+    return { cols: 12, sm: 11, md: 10, lg: 9, xl: 8 }
+  }
+  return { cols: 12, sm: 10, md: 8, lg: 5 }
+})
 </script>
 
 <template>
@@ -7,7 +16,7 @@ import { Tokens } from '~/utils/themeTokens'
     <v-main>
       <v-container class="fill-height" :class="Tokens.Spacing.pagePadding" fluid>
         <v-row align="center" justify="center">
-          <v-col cols="12" sm="10" md="8" lg="5">
+          <v-col v-bind="colConfig">
             <NuxtPage />
           </v-col>
         </v-row>

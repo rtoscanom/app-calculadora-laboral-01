@@ -26,6 +26,13 @@ export default defineNuxtConfig({
     },
   },
   vite: {
+    optimizeDeps: {
+      include: [
+        'firebase/app',
+        'firebase/auth',
+        'firebase/firestore',
+      ],
+    },
     vue: {
       template: {
         transformAssetUrls,

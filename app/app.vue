@@ -12,7 +12,7 @@ const colConfig = computed(() => {
 </script>
 
 <template>
-  <v-app :style="{ backgroundColor: 'var(--v-theme-background)' }">
+  <v-app class="bg-background" :style="{ backgroundColor: 'rgb(var(--v-theme-background))' }">
     <v-main>
       <v-container class="fill-height" :class="Tokens.Spacing.pagePadding" fluid>
         <v-row align="center" justify="center">
